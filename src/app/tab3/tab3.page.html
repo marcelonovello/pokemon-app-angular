@@ -1,0 +1,168 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>
+      <ion-icon name="heart" color="danger"></ion-icon>
+      Favoritos
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">
+        <ion-icon name="heart" color="danger"></ion-icon>
+        Favoritos
+      </ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <!-- Estatísticas dos favoritos -->
+  <ion-card *ngIf="favorites.length > 0" class="stats-card">
+    <ion-card-header>
+      <ion-card-title>Estatísticas dos Favoritos</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-grid>
+        <ion-row>
+          <ion-col size="6" size-md="3">
+            <div class="stat-item">
+              <div class="stat-number">{{ getFavoritesStats()?.total }}</div>
+              <div class="stat-label">Total</div>
+            </div>
+          </ion-col>
+          <ion-col size="6" size-md="3" *ngIf="getFavoritesStats()?.mostCommonType">
+            <div class="stat-item">
+              <ion-badge 
+                [style.background-color]="getTypeColor(getFavoritesStats()?.mostCommonType?.name || '')"
+                class="type-badge">
+                {{ capitalize(getFavoritesStats()?.mostCommonType?.name || '') }}
+              </ion-badge>
+              <div class="stat-label">Tipo Favorito</div>
+            </div>
+          </ion-col>
+          <ion-col size="6" size-md="3">
+            <div class="stat-item">
+              <div class="stat-number">{{ getFavoritesStats()?.averageHeight }}m</div>
+              <div class="stat-label">Altura Média</div>
+            </div>
+          </ion-col>
+          <ion-col size="6" size-md="3">
+            <div class="stat-item">
+              <div class="stat-number">{{ getFavoritesStats()?.averageWeight }}kg</div>
+              <div class="stat-label">Peso Médio</div>
+            </div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Lista de favoritos -->
+  <div *ngIf="favorites.length > 0">
+    <!-- Grid de favoritos -->
+    <ion-grid class="favorites-grid">
+      <ion-row>
+        <ion-col size="12" size-sm="6" size-md="4" size-lg="3" *ngFor="let pokemon of favorites">
+          <ion-item-sliding>
+            <ion-card (click)="goToPokemonDetails(pokemon)" class="favorite-card">
+              <div class="card-header">
+                <span class="pokemon-id">#{{ pokemon.id.toString().padStart(3, '0') }}</span>
+                <ion-icon name="heart" color="danger" class="favorite-icon"></ion-icon>
+              </div>
+              
+              <div class="pokemon-image-container">
+                <ion-img 
+                  [src]="pokemon.sprites.other['official-artwork'].front_default || pokemon.sprites.front_default" 
+                  [alt]="pokemon.name"
+                  class="pokemon-image">
+                </ion-img>
+              </div>
+              
+              <ion-card-header>
+                <ion-card-title class="pokemon-name">
+                  {{ capitalize(pokemon.name) }}
+                </ion-card-title>
+              </ion-card-header>
+              
+              <ion-card-content>
+                <div class="pokemon-types">
+                  <ion-badge 
+                    *ngFor="let type of pokemon.types" 
+                    [style.background-color]="getTypeColor(type.type.name)"
+                    class="type-badge">
+                    {{ capitalize(type.type.name) }}
+                  </ion-badge>
+                </div>
+                
+                <div class="pokemon-stats">
+                  <div class="stat">
+                    <span class="stat-label">Altura:</span>
+                    <span class="stat-value">{{ pokemon.height / 10 }}m</span>
+                  </div>
+                  <div class="stat">
+                    <span class="stat-label">Peso:</span>
+                    <span class="stat-value">{{ pokemon.weight / 10 }}kg</span>
+                  </div>
+                </div>
+              </ion-card-content>
+            </ion-card>
+
+            <!-- Opções de deslizar -->
+            <ion-item-options side="end">
+              <ion-item-option color="primary" (click)="goToPokemonDetails(pokemon)">
+                <ion-icon name="eye"></ion-icon>
+                Ver
+              </ion-item-option>
+              <ion-item-option color="danger" (click)="removeFromFavorites(pokemon)">
+                <ion-icon name="heart-dislike"></ion-icon>
+                Remover
+              </ion-item-option>
+            </ion-item-options>
+          </ion-item-sliding>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    <!-- Botão para limpar todos os favoritos -->
+    <div class="clear-all-container">
+      <ion-button 
+        fill="outline" 
+        color="danger" 
+        (click)="openClearAlert()"
+        class="clear-all-btn">
+        <ion-icon name="trash" slot="start"></ion-icon>
+        Limpar Todos os Favoritos
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- Estado vazio -->
+  <div *ngIf="favorites.length === 0" class="empty-state">
+    <div class="empty-icon">
+      <ion-icon name="sad" color="medium"></ion-icon>
+    </div>
+    <h2>Nenhum favorito ainda</h2>
+    <p>Adicione Pokémons aos seus favoritos tocando no ícone de coração na lista principal ou na tela de detalhes.</p>
+    <ion-button (click)="goToMainPage()" fill="solid" color="primary">
+      <ion-icon name="refresh" slot="start"></ion-icon>
+      Explorar Pokémons
+    </ion-button>
+  </div>
+
+  <!-- FAB para ações rápidas -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end" *ngIf="favorites.length > 0">
+    <ion-fab-button color="danger" (click)="openClearAlert()">
+      <ion-icon name="trash"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <!-- Alert de confirmação -->
+  <ion-alert
+    [isOpen]="isAlertOpen"
+    header="Limpar Favoritos"
+    message="Tem certeza que deseja remover todos os Pokémons dos favoritos? Esta ação não pode ser desfeita."
+    [buttons]="alertButtons"
+    (didDismiss)="isAlertOpen = false">
+  </ion-alert>
+</ion-content>
