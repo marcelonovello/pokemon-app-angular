@@ -3,6 +3,8 @@
 ## 📋 Pré-requisitos:
 - Node.js
 - npm 9+/yarn
+- SCSS
+- TypeScript
 - Ionic CLI 8+
 - Chrome/Firefox
 
